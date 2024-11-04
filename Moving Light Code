@@ -1,0 +1,92 @@
+----------------------------------------------------------------------------------
+-- Company: Uni-Bremerhaven 
+-- Engineer: Heet Vinodbhai Gadhiya
+-- Create Date: 25.05.2023 14:47:18 
+-- Module Name: MVLIGHT - Behavioral
+-- Project Name: MVLIGHT
+-- Description: rotate LED left and right
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+entity MVLIGHT is
+    Port ( clk : in STD_LOGIC;
+           btnd : in STD_LOGIC;
+           btnl : in STD_LOGIC;
+           btnc : in STD_LOGIC;
+           btnr : in STD_LOGIC;
+           zswitch : in STD_LOGIC_VECTOR (7 downto 0);
+           zled : out STD_LOGIC_VECTOR (7 downto 0));
+end MVLIGHT;
+
+architecture Behavioral of mvlight is
+
+-- unconnect next line for simulation(50 MHz)
+-- unconnect next line for hardware (6 Hz)
+
+CONSTANT MAX_COUNT : integer := 2;
+-- CONSTANT MAX_COUNT : integer := 16666667;
+SUBTYPE Count_type IS integer range 0 TO max_count-1;
+signal rot_left : std_logic := '0';
+signal pulse_6Hz : std_logic;
+signal led_reg : STD_LOGIC_VECTOR (7 downto 0) := x"03";
+signal rot_right : std_logic := '0';
+
+begin
+    zled <= led_reg;
+
+    count24p : PROCESS (clk)
+    VARIABLE cnt : Count_type :=0;
+    BEGIN
+            IF rising_edge (clk) THEN
+                pulse_6Hz <= '0';
+                IF cnt = MAX_COUNT-1 THEN
+                    cnt := 0;
+                    pulse_6Hz <= '1';
+                ELSE
+                    cnt := cnt+1;
+                END IF;
+            END IF;
+    END process count24p;
+    
+    -- operational logic
+    ol_p : PROCESS (clk)
+    BEGIN
+            IF rising_edge (clk) THEN
+               IF btnl='1' THEN
+                   rot_left <= '1';
+                   rot_right <= '0';
+              elsif btnr = '1' THEN   
+                rot_left <= '0';
+                 rot_right <= '1';
+             elsif btnc = '1' THEN   
+                rot_left <= '0';
+                 rot_right <= '0';
+               elsif btnd = '1' THEN   
+                rot_left <= '1';
+                 rot_right <= '1';
+                 END IF;
+            END IF;
+    END process ol_p;
+
+    -- rotation logic
+    lrrot_p : PROCESS (clk)
+    BEGIN
+            IF rising_edge (clk) THEN
+               IF pulse_6Hz = '1' THEN
+                   IF rot_left='1' THEN
+                      led_reg <= led_reg(6 downto 0) & led_reg(7);
+                   elsif rot_right='1' THEN
+                       led_reg <= led_reg(0) & led_reg(7 downto 1);
+                        ELSIF btnd = '1' THEN
+                    led_reg <= zswitch;
+                    END IF;
+                END IF;
+            END IF;
+    END process lrrot_p;
+    
+
+end Behavioral;
