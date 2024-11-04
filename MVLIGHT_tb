@@ -1,0 +1,90 @@
+----------------------------------------------------------------------------------
+-- Engineer: Heet Gadhiya
+-- Create Date: 26.05.2023 12:50:11
+-- Module Name: MVLIGHT_tb - Behavioral
+-- Description: Testbench file for MVLIGHT program
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.numeric_std.all;
+
+
+entity MVLIGHT_tb is
+--  Port ( );
+end MVLIGHT_tb;
+
+architecture Behavioral of MVLIGHT_tb is
+
+    COMPONENT MVLIGHT IS
+
+        PORT( clk : in STD_LOGIC;              -- clock pulse
+              btnl : in STD_LOGIC;             -- Rotate left
+              btnr : in STD_LOGIC;             -- Rotate right
+              btnc : in STD_LOGIC;             -- Stop rotation
+              btnd : in STD_LOGIC;             -- Load Switches
+              zswitch : in STD_LOGIC_VECTOR (7 downto 0);
+              zled : out STD_LOGIC_VECTOR (7 downto 0));
+              
+        END COMPONENT MVLIGHT;
+
+        SIGNAL clk : STD_LOGIC := '0';
+        SIGNAL btnl: std_logic := '0';
+        SIGNAL btnr : std_logic := '0';
+        SIGNAL btnc: std_logic := '0';
+        SIGNAL btnd : std_logic := '0';
+        SIGNAL zswitch : STD_LOGIC_VECTOR (7 downto 0) := x"00";
+        SIGNAL zled : STD_LOGIC_VECTOR (7 downto 0) := x"00";
+        CONSTANT clk_period : time := 10 ns;
+
+begin
+      uut : MVLIGHT
+      PORT MAP (clk => clk, 
+                btnl => btnl,
+                btnr => btnr,
+                btnc => btnc,
+                btnd => btnd,
+                zswitch => zswitch,
+                zled => zled);
+
+      clk_p : PROCESS
+      BEGIN
+      
+        wait for clk_period/2;
+        clk <= '1';
+        wait for clk_period/2;
+        clk <= '0';
+        
+      END PROCESS clk_p;
+      
+      stim_p : PROCESS
+      BEGIN 
+       
+        wait for clk_period*3;        -- load switch
+        zswitch <= x"07";
+        wait for clk_period;
+        btnd<='1';
+        wait for clk_period;
+        btnd<= '0';
+        
+        wait for clk_period;         --rotate left
+        btnl <= '1';
+        wait for clk_period;
+        btnl <= '0';
+         
+        
+        wait for clk_period*30;      -- rotate right
+        btnr <= '1';
+        wait for clk_period;
+        btnr <= '0';
+        
+        wait for clk_period*30;      -- stop 
+        btnc<= '1';
+        wait for clk_period;
+        btnc <= '0';
+        
+         wait;
+        
+     END PROCESS stim_p;
+end Behavioral;
